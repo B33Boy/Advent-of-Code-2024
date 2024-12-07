@@ -67,7 +67,7 @@ def run_simulation(inp, px, py):
 
 
 def get_count(inp):
-    count = 1  # account for the final position
+    count = 0
     for i in range(m):
         for j in range(n):
             if inp[i][j] == 'X':
@@ -83,16 +83,17 @@ def print_board(inp):
 
 
 inp_cpy = copy.deepcopy(inp)
-px, py = find_initial_start(inp_cpy)
-run_simulation(inp_cpy, px, py)
+origin_x, origin_y = find_initial_start(inp_cpy)
+run_simulation(inp_cpy, origin_x, origin_y)
 
-print_board(inp_cpy)
-print(get_count(inp_cpy))
+# print_board(inp_cpy)
+print(1 + get_count(inp_cpy))
 
 
 # Part 2
 def run_simulation2(inp, px, py):
     path = []
+    foundloop = False
 
     while True:
         # Get orientation from board, compute next step
@@ -101,12 +102,16 @@ def run_simulation2(inp, px, py):
 
         # Ensure the next step wouldn't be out of bounds
         if nx < 0 or nx >= m or ny < 0 or ny >= n:
+            # If out of bounds, then mark
+            # inp[px][py] = 'X'
+            path.append((orientation, px, py))
             break
 
         if (orientation, px, py) in path:
-            return True
+            foundloop = True
+            break
 
-        # if blocked then calculate next orientation
+        # while blocked then calculate next orientation
         while inp[nx][ny] == '#':
             orientation = next_orientation[orientation]
             inp[px][py] = orientation
@@ -116,27 +121,33 @@ def run_simulation2(inp, px, py):
 
         # mark current as X, then update position
         inp[px][py] = 'X'
-
         px = nx
         py = ny
         inp[px][py] = orientation
 
-    return False
+    # Reset board to original
+    for _, x, y in path:
+        inp[x][y] = '.'
+    inp[origin_x][origin_y] = '^'
+
+    return foundloop
 
 
 num_inf_loops = 0
+origin_x, origin_y = find_initial_start(inp)
+
 for i in range(m):
     for j in range(n):
-
-        inp_cpy = copy.deepcopy(inp)
-
-        if inp_cpy[i][j] == '#' or inp_cpy[i][j] == '^':
+        if inp[i][j] == '#' or inp[i][j] == '^':
             continue
 
         # Place block
-        inp_cpy[i][j] = '#'
+        inp[i][j] = '#'
 
-        if run_simulation2(inp_cpy, px, py):
+        if run_simulation2(inp, origin_x, origin_y):
             num_inf_loops += 1
+
+        # Replace original point
+        inp[i][j] = '.'
 
 print(num_inf_loops)
