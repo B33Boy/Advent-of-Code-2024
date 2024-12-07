@@ -1,6 +1,7 @@
 # Part 1
 
 import copy
+import time
 
 inp = []
 
@@ -36,9 +37,7 @@ def find_initial_start(inp):
 
 def compute_next_step(px, py, orientation):
     dx, dy = orientation_map[orientation]
-    nx = px + dx
-    ny = py + dy
-    return nx, ny
+    return px + dx, py + dy
 
 
 def run_simulation(inp, px, py):
@@ -133,9 +132,37 @@ def run_simulation2(inp, px, py):
     return foundloop
 
 
+def run_simulation3(inp, px, py):
+    path = set()
+
+    orientation = inp[px][py]
+
+    while True:
+        nx, ny = compute_next_step(px, py, orientation)
+
+        if nx < 0 or nx >= m or ny < 0 or ny >= n:
+            break
+
+        while inp[nx][ny] == '#':
+            path.add((orientation, px, py))
+            orientation = next_orientation[orientation]
+            nx, ny = compute_next_step(px, py, orientation)
+
+        current_state = (orientation, px, py)
+        if current_state in path:
+            return True
+
+        path.add((orientation, px, py))
+
+        px, py = nx, ny
+
+    return False
+
+
 num_inf_loops = 0
 origin_x, origin_y = find_initial_start(inp)
 
+start = time.perf_counter()
 for i in range(m):
     for j in range(n):
         if inp[i][j] == '#' or inp[i][j] == '^':
@@ -144,10 +171,13 @@ for i in range(m):
         # Place block
         inp[i][j] = '#'
 
-        if run_simulation2(inp, origin_x, origin_y):
+        if run_simulation3(inp, origin_x, origin_y):
             num_inf_loops += 1
+            # print(i, j, num_inf_loops)
+        # print_board(inp)
 
         # Replace original point
         inp[i][j] = '.'
 
 print(num_inf_loops)
+print(f"Elapsed TIme: {time.perf_counter() - start} seconds")
