@@ -3,27 +3,26 @@ with open('inp.txt', 'r') as f:
 
 
 # Part 1
-is_free: bool = True
-id_num: int = 0
-free_blocks: int = 0
-fragmented_data: list[int] = []
 
-# Generate fragmented data
-for _, file_length in enumerate(line):
+def generate_fragmented_data(line: str) -> list[int]:
+    id_num: int = 0
+    is_free: bool = True
+    fragmented_data: list[int] = []
+    free_blocks: int = 0
 
-    is_free = not is_free
+    for _, file_length in enumerate(line):
 
-    if is_free:
-        free_space = int(file_length)
-        fragmented_data += [None] * free_space  # -1 will be empty spaces
-        free_blocks += free_space
+        is_free = not is_free
 
-    else:
-        fragmented_data += [id_num]*int(file_length)
-        id_num += 1
+        if is_free:
+            fragmented_data += [None] * int(file_length)
+            free_blocks += int(file_length)
 
-# print("original", ' '.join(list(map(str, fragmented_data))))
-print("free_spots: ", free_blocks)
+        else:
+            fragmented_data += [id_num]*int(file_length)
+            id_num += 1
+
+    return fragmented_data, free_blocks
 
 
 def defragmant(frag: list[int], free_blocks: int) -> list[int]:
@@ -44,7 +43,6 @@ def defragmant(frag: list[int], free_blocks: int) -> list[int]:
 
         frag[l], frag[r] = frag[r], frag[l]
         free_blocks -= 1
-        # print(' '.join(list(map(str, frag))))
 
     return frag
 
@@ -59,5 +57,14 @@ def calculate_checksum(frag: list[int]) -> int:
     return checksum
 
 
-defrag: list[int] = defragmant(list(fragmented_data), free_blocks)
-print(calculate_checksum(defrag))
+# Generate fragmented data
+fragmented_data: list[int] = []
+free_blocks: int = 0
+
+fragmented_data, free_blocks = generate_fragmented_data(line)
+
+print("original", ' '.join(list(map(str, fragmented_data))))
+print("free_spots: ", free_blocks)
+
+defragmented_data: list[int] = defragmant(list(fragmented_data), free_blocks)
+print(calculate_checksum(defragmented_data))
